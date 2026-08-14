@@ -1,0 +1,50 @@
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.common.by import By
+import time
+import csv
+
+# Setup driver
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+driver.get('https://www.youtube.com/channel/UC7eHZXheF8nVOfwB2PEslMw/videos')
+
+driver.maximize_window()
+time.sleep(5)
+
+# Scroll to load videos
+driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
+time.sleep(3)
+
+videos = driver.find_elements(By.XPATH, '//ytd-rich-item-renderer')
+
+# Open CSV file for writ ing
+with open("youtube_videos.csv", mode="w", newline="", encoding="utf-8") as file:
+    writer = csv.writer(file)
+
+    # Write header row
+    writer.writerow(["Title", "Views", "Posted"])
+
+    for video in videos:
+        try:
+            title = video.find_element(By.XPATH, './/*[@id="video-title"]').text
+        except:
+            title = "None"
+
+        try:
+            views = video.find_element(By.XPATH, './/div[@id="metadata-line"]/span[1]').text
+        except:
+            views = "Not found"
+
+        try:
+            posted = video.find_element(By.XPATH, './/div[@id="metadata-line"]/span[2]').text
+        except:
+            posted = "Not found"
+
+        # Write row to CSV
+        writer.writerow([title, views, posted])
+
+print("Data saved successfully to youtube_videos.csv")
+
+driver.quit()
+
